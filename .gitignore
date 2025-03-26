@@ -1,0 +1,38 @@
+## Build generated
+build/
+DerivedData/
+Pods
+# Xcode
+.DS_Store
+project.xcworkspace/
+xcuserdata/
+xcshareddata/
+
+*.idea/
+
+## Other / XCode7
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+#Merge Tool Diff Files
+*.orig
+
+.DS_Store
+
+out
+dist
+coverage
+test-results
+node_modules
+default.profraw
+*.vsix
+.vscode-test
+.build
+.index-build
+.DS_Store
+.vscode/
+assets/documentation-webview
+assets/test/**/Package.resolved
+assets/swift-docc-render
+ud
