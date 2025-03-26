@@ -8,20 +8,27 @@ enum NetworkError: Error {
 }
 
 let handler = ErrorHandlerBuilder<NetworkError>()
-    .always { _ in print("1️⃣ First unconditional") }
-    .when({ $0 == .timeout }, then: { _ in print("⏳ Timeout handler") })
-    .always { _ in print("2️⃣ Second unconditional") }
-    .when({ $0 == .unauthorized }, then: { _ in print("🔒 Auth handler") })
-    .always { _ in print("3️⃣ Third unconditional") }
+    .always { (error: NetworkError) in print("1️⃣ First unconditional") }
+    .when({ $0 == .timeout }, then: [
+        { (error: NetworkError) in print("⏳ Timeout handler 1") },
+        { (error: NetworkError) in print("⏳ Timeout handler 2") }
+    ])
+    .always { (error: NetworkError) in print("2️⃣ Second unconditional") }
+    .when({ $0 == .unauthorized }, then: [
+        { (error: NetworkError) in print("🔒 Auth handler 1") },
+        { (error: NetworkError) in print("🔒 Auth handler 2") },
+        { (error: NetworkError) in print("🔒 Auth handler 3") }
+    ])
+    .always { (error: NetworkError) in print("3️⃣ Third unconditional") }
     .build()
 
-print("Testing execution order with completion blocks...\n")
+print("Testing multiple actions per condition...\n")
 
 [NetworkError.timeout, .unauthorized, .serverError].forEach { error in
     print("\nHandling \(error):")
-    handler.handle(error, completion: { result in
+    handler.handle(error) { result in
         print("Completion: Error was \(result == .handled ? "handled" : "not handled")")
-    })
+    }
 }
 
 print("\nTest completed.")

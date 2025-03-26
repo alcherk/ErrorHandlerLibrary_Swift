@@ -3,8 +3,8 @@ public final class ErrorHandlerBuilder<T: Error> {
     
     public init() {}
     
-    public func when(_ condition: @escaping (T) -> Bool, then action: @escaping (T) -> Void) -> Self {
-        actions.append(.conditional(condition: condition, action: action))
+    public func when(_ condition: @escaping (T) -> Bool, then actions: [(T) -> Void]) -> Self {
+        self.actions.append(.conditional(condition: condition, actions: actions))
         return self
     }
     

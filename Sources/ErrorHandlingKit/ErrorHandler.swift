@@ -6,7 +6,7 @@ public final class ErrorHandler<T: Error> {
     
     public enum Action {
         case unconditional((T) -> Void)
-        case conditional(condition: (T) -> Bool, action: (T) -> Void)
+        case conditional(condition: (T) -> Bool, actions: [(T) -> Void])
     }
     
     private let actions: [Action]
@@ -24,9 +24,9 @@ public final class ErrorHandler<T: Error> {
             case .unconditional(let handler):
                 handler(error)
                 
-            case .conditional(let condition, let handler):
+            case .conditional(let condition, let handlers):
                 if condition(error) {
-                    handler(error)
+                    handlers.forEach { $0(error) }
                     result = .handled
                 }
             }
