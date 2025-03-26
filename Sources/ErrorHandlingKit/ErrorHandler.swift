@@ -1,48 +1,38 @@
-/// Protocol defining error handling behavior
-public protocol IErrorHandling {
-    associatedtype T: Error
-    func handle(_ error: T) -> HandlingResult
-}
-
-/// Concrete implementation of error handler
-public struct ErrorHandler<T: Error>: IErrorHandling {
-    private let errorHandlingRules: [ErrorHandlingRule]
-    private let unconditionalActions: [(T) -> Void]
-    private let preHandlers: [(T) -> Void]
-    private let postHandlers: [(T, HandlingResult) -> Void]
-    
-    public struct ErrorHandlingRule {
-        let condition: (T) -> Bool
-        let actions: [(T) -> Void]
+public final class ErrorHandler<T: Error> {
+    public enum HandlingResult {
+        case handled
+        case unhandled
     }
     
-    public init(
-        errorHandlingRules: [ErrorHandlingRule],
-        unconditionalActions: [(T) -> Void],
-        preHandlers: [(T) -> Void],
-        postHandlers: [(T, HandlingResult) -> Void]
-    ) {
-        self.errorHandlingRules = errorHandlingRules
-        self.unconditionalActions = unconditionalActions
-        self.preHandlers = preHandlers
-        self.postHandlers = postHandlers
+    public enum Action {
+        case unconditional((T) -> Void)
+        case conditional(condition: (T) -> Bool, action: (T) -> Void)
     }
     
-    public func handle(_ error: T) -> HandlingResult {
-        preHandlers.forEach { $0(error) }
+    private let actions: [Action]
+    
+    public init(actions: [Action]) {
+        self.actions = actions
+    }
+    
+    @discardableResult
+    public func handle(_ error: T, completion: ((HandlingResult) -> Void)? = nil) -> HandlingResult {
+        var result = HandlingResult.unhandled
         
-        // Execute unconditional actions
-        unconditionalActions.forEach { $0(error) }
-        
-        for rule in errorHandlingRules {
-            if rule.condition(error) {
-                rule.actions.forEach { $0(error) }
-                postHandlers.forEach { $0(error, .handled) }
-                return .handled
+        for action in actions {
+            switch action {
+            case .unconditional(let handler):
+                handler(error)
+                
+            case .conditional(let condition, let handler):
+                if condition(error) {
+                    handler(error)
+                    result = .handled
+                }
             }
         }
         
-        postHandlers.forEach { $0(error, .unhandled) }
-        return .unhandled
+        completion?(result)
+        return result
     }
 }
